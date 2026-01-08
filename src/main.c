@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <time.h>
+#include "rule/grid.h"
 #include "log/log.h"
 #include "ui/ui.h"
 #include "GameState.h"
@@ -33,6 +35,7 @@ APPstate *init_APPstate() {
     app->grid_rows = 5;
     app->mine_pourcentage = 12;
     app->mouse_event = (MEVENT){0};
+    app->game_grid.cells = NULL;
     wtimeout(app->window, 100); // Set input timeout
     return app;
 }
@@ -79,7 +82,10 @@ int main() {
                 break;
 
             case GAME:
-                app->running = 0; // Placeholder to exit the loop
+                if (draw_game(app) == 1){
+                    write_log(LOG_ERROR, "Error drawing game screen.");
+                    app->running = 0;
+                }
                 break;
             
             case OPTIONS:
@@ -102,6 +108,6 @@ int main() {
     }
     
     cleanup_ncurses();
-    write_log(LOG_INFO, "Application exited.");
+    write_log(LOG_INFO, "Application exited.\n\n\n");
     return 0;
 }

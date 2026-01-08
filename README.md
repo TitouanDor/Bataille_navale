@@ -1,4 +1,7 @@
-# Bataille_navale
+# Miner
 
 ## Compilation
-Ce jeu possède un makefile faites donc ```make``` pour compiler puis ```./navalbattle``` pour lancer le jeu
+To compile this game, a Makefile is include so you can compile this game with ```make``` then run it with ```./miner```
+
+## Depedency
+This project have one depedency Ncurses, you can install it with ```sudo apt install libncurses5-dev```

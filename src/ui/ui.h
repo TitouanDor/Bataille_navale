@@ -35,6 +35,16 @@ int draw_menu(APPstate *app);
 int draw_options(APPstate *app);
 
 /**
+ * Draws the game screen on the given ncurses window.
+ *
+ * Displays the game grid and related information.
+ *
+ * \param win Pointer to the ncurses window where the game will be drawn.
+ * \return 0 on success, non-zero on error.
+ */
+int draw_game(APPstate *app);
+
+/**
  * Centers and prints text horizontally in the given window at the specified y position.
  *
  * \param win Pointer to the ncurses window.

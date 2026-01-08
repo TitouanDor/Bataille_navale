@@ -2,6 +2,8 @@
 #define GAMESTATE_H
 
 #include <ncurses.h>
+#include <time.h>
+#include "rule/grid.h"
 
 /**
  * Represents the current window/screen displayed by the program.
@@ -16,7 +18,7 @@ enum ActualWindow {
 /**
  * Represents the current state of the game.
  */
-typedef struct {
+struct APPstate{
     WINDOW *window;               /**< Pointer to the main ncurses window. */
     enum ActualWindow current_window; /**< Current active window/screen. */
     int running;                  /**< Flag indicating if the application is running. */
@@ -26,6 +28,8 @@ typedef struct {
     int grid_columns;            /**< Number of columns in the game grid. */
     int grid_rows;               /**< Number of rows in the game grid. */
     int mine_pourcentage;        /**< Percentage of mines in the game grid. */
-} APPstate;
+    Grid game_grid;              /**< The game grid structure. */
+    time_t start_time;          /**< Game start time. */
+};
 
 #endif // GAMESTATE_H

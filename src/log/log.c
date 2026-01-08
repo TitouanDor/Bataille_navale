@@ -14,7 +14,7 @@ int init_log(void) {
         return 1;
     }
     time_t now = time(NULL);
-    fprintf(log_file, "\n\n[INFO] : Log started at %s", ctime(&now));
+    fprintf(log_file, "[INFO] : Log started at %s", ctime(&now));
     fclose(log_file);
     return 0;
 }
