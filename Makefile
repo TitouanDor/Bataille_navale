@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -O2 -g -O0
 LDLIBS = -lncurses
-EXEC = navalbattle
+EXEC = miner
 SRC := $(wildcard */*.c */*/*.c)
 OBJ = $(SRC:.c=.o)
 

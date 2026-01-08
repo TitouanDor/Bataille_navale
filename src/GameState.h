@@ -9,8 +9,8 @@
 enum ActualWindow {
     MENU,    /**< Main menu screen. */
     GAME,    /**< Game screen. */
-    OPTIONS,/**< Options screen. */
-    END  /**< End screen. */
+    OPTIONS, /**< Options screen. */
+    END      /**< End screen. */
 };
 
 /**
@@ -23,6 +23,9 @@ typedef struct {
     MEVENT mouse_event;         /**< Latest mouse event data. */
     int cursor_x;                /**< Current x position of the cursor. */
     int cursor_y;                /**< Current y position of the cursor. */
+    int grid_columns;            /**< Number of columns in the game grid. */
+    int grid_rows;               /**< Number of rows in the game grid. */
+    int mine_pourcentage;        /**< Percentage of mines in the game grid. */
 } APPstate;
 
 #endif // GAMESTATE_H

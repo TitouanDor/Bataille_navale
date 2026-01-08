@@ -25,6 +25,16 @@ WINDOW *initialize_ncurses();
 int draw_menu(APPstate *app);
 
 /**
+ * Draws the options screen on the given ncurses window.
+ *
+ * Displays options and handles basic layout.
+ *
+ * \param win Pointer to the ncurses window where the options will be drawn.
+ * \return 0 on success, non-zero on error.
+ */
+int draw_options(APPstate *app);
+
+/**
  * Centers and prints text horizontally in the given window at the specified y position.
  *
  * \param win Pointer to the ncurses window.

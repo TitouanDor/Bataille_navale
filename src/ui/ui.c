@@ -1,9 +1,33 @@
 #include <string.h>
+#include <stdlib.h>
 #include "ui.h"
 #include "../log/log.h"
 #include "./../GameState.h"
 
-int max_x, max_y;
+int max_x, max_y, n = 0;
+const char *menu[] = {
+    "=== Miner ===",
+    "",
+    "Start a new game (not implemented)",
+    "Options",
+    "Quit",
+    NULL
+};
+
+const char *options[] = {
+    "=== Options ===",
+    "",
+    "Columns",
+    "",
+    "Rows",
+    "",
+    "Mines (% of grid)",
+    "",
+    "Start",
+    "Back to Menu",
+    "Quit",
+    NULL
+};
 
 WINDOW *initialize_ncurses() {
     WINDOW *win = initscr();
@@ -31,19 +55,9 @@ int draw_menu(APPstate *app) {
         write_log(LOG_ERROR, "Window is NULL in draw_menu.");
         return 1;
     }
-    char *menu[] = {
-        "=== Naval Battle ===",
-        "",
-        "Start a new game (not implemented)",
-        "Options (not implemented)",
-        "Quit",
-        NULL
-    };
-
-    int n = 0;
-    while (menu[n]) n++;
-
+    
     werase(win);
+    while (menu[n]) n++;
 
     for(int i = 0; menu[i] != NULL; i++) {
         if (i == app->cursor_y && i >=2 && i < n) {
@@ -56,16 +70,101 @@ int draw_menu(APPstate *app) {
     }
 
     if (app->cursor_y == 2 && (app->mouse_event.bstate & BUTTON1_PRESSED)) {
+        app->mouse_event.bstate = 0;
         app->current_window = GAME;
         write_log(LOG_INFO, "New game started from menu.");
     } else if (app->cursor_y == 3 && (app->mouse_event.bstate & BUTTON1_PRESSED)) {
+        app->mouse_event.bstate = 0;
         app->current_window = OPTIONS;
         write_log(LOG_INFO, "Options selected from menu.");
     } else if (app->cursor_y == 4 && (app->mouse_event.bstate & BUTTON1_PRESSED)) {
+        app->mouse_event.bstate = 0;
         write_log(LOG_INFO, "Quit selected from menu.");
         app->running = 0;
     }
-    wrefresh(win);
+    return 0;
+}
+
+int draw_options(APPstate *app) {
+    int clicked_y = -1;
+    int clicked_x = -1;
+    int plus_x = -1;
+    int minus_x = -1;
+    WINDOW *win = app->window;
+    getmaxyx(win, max_y, max_x);
+    if (win == NULL) {
+        write_log(LOG_ERROR, "Window is NULL in draw_options.");
+        return 1;
+    }
+    
+    werase(win);
+    while (options[n]) n++;
+
+    for(int i = 0; options[i] != NULL; i++) {
+        if ((i == app->cursor_y && (i >=2 && i < n)) || (i+1==app->cursor_y && options[i+1] && strcmp(options[i+1], "") == 0)) {
+            wattron(win, A_REVERSE);
+        }
+        middle_x(win, i, options[i]);
+        if ((i == app->cursor_y && (i >=2 && i < n)) || (i+1==app->cursor_y && options[i+1] && strcmp(options[i+1], "") == 0)) {
+            wattroff(win, A_REVERSE);
+        }
+    }
+
+    char *col, *row, *mine;
+    asprintf(&col, "- %d +", app->grid_columns);
+    asprintf(&row, "- %d +", app->grid_rows);
+    asprintf(&mine, "- %d +", app->mine_pourcentage);
+    middle_x(win, 3, col);
+    middle_x(win, 5, row);
+    middle_x(win, 7, mine);
+
+    if (app->mouse_event.bstate & BUTTON1_PRESSED) {
+        app->mouse_event.bstate = 0;
+        clicked_y = app->mouse_event.y;
+        clicked_x = app->mouse_event.x;
+    }
+
+    if (clicked_y == 8){
+        app->current_window = GAME;
+        write_log(LOG_INFO, "Starting game from options.");
+    } else if (clicked_y == 9){
+        app->current_window = MENU;
+        write_log(LOG_INFO, "Returning to menu from options.");
+    } else if (clicked_y == 10) {
+        write_log(LOG_INFO, "Quit selected from options.");
+        app->running = 0;
+    } else if (clicked_y == 3) {
+        write_log(LOG_INFO, "Increasing columns from %d to %d", app->grid_columns, app->grid_columns + 1);
+        plus_x = (max_x - strlen(col)) / 2 + strlen(col) - 1;
+        minus_x = (max_x - strlen(col)) / 2;
+        if (clicked_x == plus_x) {
+            app->grid_columns += 1;
+        } else if (clicked_x == minus_x && app->grid_columns > 5) {
+            app->grid_columns -= 1;
+        }
+    } else if (clicked_y == 5) {
+        write_log(LOG_INFO, "Increasing rows from %d to %d", app->grid_rows, app->grid_rows + 1);
+        plus_x = (max_x - strlen(row)) / 2 + strlen(row) - 1;
+        minus_x = (max_x - strlen(row)) / 2;
+        if (clicked_x == plus_x) {
+            app->grid_rows += 1;
+        } else if (clicked_x == minus_x && app->grid_rows > 5) {
+            app->grid_rows -= 1;
+        }
+    } else if (clicked_y == 7) {
+        write_log(LOG_INFO, "Increasing mines from %d to %d", app->mine_pourcentage, app->mine_pourcentage + 1);
+        plus_x = (max_x - strlen(mine)) / 2 + strlen(mine) - 1;
+        minus_x = (max_x - strlen(mine)) / 2;
+        if (clicked_x == plus_x && app->mine_pourcentage < 23) {
+            app->mine_pourcentage += 1;
+        } else if (clicked_x == minus_x && app->mine_pourcentage > 12) {
+            app->mine_pourcentage -= 1;
+        }
+    }
+    
+    free(col);
+    free(row);
+    free(mine);
     return 0;
 }
 

@@ -29,6 +29,9 @@ APPstate *init_APPstate() {
     app->running = 1;
     app->cursor_x = 0;
     app->cursor_y = 0;
+    app->grid_columns = 5;
+    app->grid_rows = 5;
+    app->mine_pourcentage = 12;
     app->mouse_event = (MEVENT){0};
     wtimeout(app->window, 100); // Set input timeout
     return app;
@@ -69,7 +72,10 @@ int main() {
 
         switch (app->current_window) {
             case MENU:
-                draw_menu(app);
+                if (draw_menu(app) == 1){
+                    write_log(LOG_ERROR, "Error drawing menu screen.");
+                    app->running = 0;
+                }
                 break;
 
             case GAME:
@@ -77,7 +83,10 @@ int main() {
                 break;
             
             case OPTIONS:
-                app->running = 0; // Placeholder to exit the loop
+                if (draw_options(app) == 1){
+                    write_log(LOG_ERROR, "Error drawing options screen.");
+                    app->running = 0;
+                }
                 break;
 
             case END:
@@ -89,6 +98,7 @@ int main() {
                 app->running = 0;
                 break;
         }
+        wrefresh(app->window);
     }
     
     cleanup_ncurses();
