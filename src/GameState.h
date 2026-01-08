@@ -9,6 +9,7 @@
 enum ActualWindow {
     MENU,    /**< Main menu screen. */
     GAME,    /**< Game screen. */
+    OPTIONS,/**< Options screen. */
     END  /**< End screen. */
 };
 

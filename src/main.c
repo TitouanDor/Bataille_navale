@@ -1,8 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
 #include "log/log.h"
 #include "ui/ui.h"
 #include "GameState.h"
+
+volatile sig_atomic_t sigint_triggered = 0;
+
+void sigint_handler(int signal){
+    if (signal == SIGINT) {
+        write_log(LOG_INFO, "SIGINT received, preparing to exit...");
+        sigint_triggered = 1;
+    }
+}
 
 APPstate *init_APPstate() {
     APPstate *app = malloc(sizeof(APPstate));
@@ -37,7 +47,8 @@ int main() {
     }
 
     write_log(LOG_INFO, "Application started.");
-    while (app->running) {
+    while (app->running && !sigint_triggered) {
+        signal(SIGINT, sigint_handler);
 
         int ch = getch();
 
@@ -62,9 +73,15 @@ int main() {
                 break;
 
             case GAME:
+                app->running = 0; // Placeholder to exit the loop
+                break;
+            
+            case OPTIONS:
+                app->running = 0; // Placeholder to exit the loop
                 break;
 
             case END:
+                app->running = 0; // Placeholder to exit the loop
                 break;
 
             default:
