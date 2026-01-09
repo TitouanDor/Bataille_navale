@@ -70,7 +70,7 @@ int main() {
                 }
             }
         } else {
-            /* handle keyboard here: change app->cursor_y on KEY_UP/KEY_DOWN, etc. */
+            // Handle other key inputs if necessary
         }
 
 
@@ -97,7 +97,10 @@ int main() {
                 break;
 
             case END:
-                app->running = 0; // Placeholder to exit the loop
+                if (draw_end(app) == 1){
+                    write_log(LOG_ERROR, "Error drawing end screen.");
+                    app->running = 0;
+                }
                 break;
 
             default:

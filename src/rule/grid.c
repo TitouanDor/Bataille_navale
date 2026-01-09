@@ -191,6 +191,10 @@ int flagged_cell(APPstate *app, int row, int col) {
 }
 
 int count_flagged_cells(APPstate *app) {
+    if (app->game_grid.cells == NULL) {
+        write_log(LOG_WARNING, "Game grid cells are NULL when counting flagged cells.");
+        return 0;
+    }
     int flagged_count = 0;
     for (int r = 0; r < app->game_grid.rows; r++) {
         for (int c = 0; c < app->game_grid.columns; c++) {

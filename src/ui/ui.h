@@ -52,6 +52,27 @@ int draw_options(APPstate *app);
 int draw_game(APPstate *app);
 
 /**
+ * Draws the game grid on the given ncurses window.
+ *
+ * Renders the current state of the game grid including revealed cells,
+ * flagged cells, and mines.
+ *
+ * \param app Pointer to the current application state.
+ * \return 0 on success, non-zero on error.
+ */
+int draw_grid(APPstate *app);
+
+/**
+ * Draws the end screen on the given ncurses window.
+ *
+ * Displays game over information and options to return to menu.
+ *
+ * \param win Pointer to the ncurses window where the end screen will be drawn.
+ * \return 0 on success, non-zero on error.
+ */
+int draw_end(APPstate *app);
+
+/**
  * Centers and prints text horizontally in the given window at the specified y position.
  *
  * \param win Pointer to the ncurses window.

@@ -58,6 +58,8 @@ int draw_menu(APPstate *app) {
 
     if (app->game_grid.cells != NULL) {
         cleanup_grid(app);
+        app->game_grid.mine_placed = FALSE;
+        write_log(LOG_INFO, "Cleaned up previous game grid.");
     }
     
     werase(win);
@@ -192,22 +194,11 @@ int draw_game(APPstate *app) {
     }
     getmaxyx(win, max_y, max_x);
 
-    if (app->game_grid.cells == NULL) {
-        if (initialize_grid(app) != 0) {
-            write_log(LOG_ERROR, "Failed to initialize game grid.");
-            return 1;
-        }
-        write_log(LOG_INFO, "Grid %d x %d, mines=%d", app->grid_rows, app->grid_columns, app->game_grid.total_mines);
-    }
-
-    if (app->game_grid.cells == NULL) {
-        write_log(LOG_ERROR, "Game grid cells are NULL.");
-    }
-
     int flagged_cells = count_flagged_cells(app);
 
     if (app->game_grid.revealed_cells + flagged_cells == app->grid_rows * app->grid_columns && flagged_cells == app->game_grid.total_mines) {
         write_log(LOG_INFO, "All cells revealed or flagged. Player wins!");
+        app->end_time = time(NULL);
         app->current_window = END;
         return 0;
     }
@@ -236,30 +227,10 @@ int draw_game(APPstate *app) {
         wattroff(win, A_REVERSE);
     }
 
+    draw_grid(app);
+
     int x_start = (max_x - app->grid_columns) / 2;
     int y_start = (max_y - app->grid_rows) / 2;
-
-    if (max_y < app->grid_rows || max_x < app->grid_columns) {
-        //this will change later to a interdiction of starting the game with too small window and lock the window size
-        write_log(LOG_ERROR, "Window too small (%d x %d) for grid %d x %d", max_y, max_x, app->grid_rows, app->grid_columns);
-        return 1;
-    }
-
-    for (int r = 0; r < app->grid_rows; r++) {
-        for (int c = 0; c < app->grid_columns; c++) {
-            if (app->game_grid.cells[r][c].is_revealed == TRUE) {
-                char adj[4];
-                snprintf(adj, sizeof(adj), "%d", app->game_grid.cells[r][c].adjacent_mines);
-                mvwprintw(win, y_start + r, x_start + c, "%s", adj);
-            } else if (app->game_grid.cells[r][c].is_flagged == TRUE) {
-                wattron(win, A_REVERSE | A_BOLD);
-                mvwprintw(win, y_start + r, x_start + c, "F");
-                wattroff(win, A_REVERSE | A_BOLD);
-            } else {
-                mvwprintw(win, y_start + r, x_start + c, "#");
-            }
-        }
-    }
 
     mouse_clicked = NONE;
 
@@ -305,6 +276,124 @@ int draw_game(APPstate *app) {
         flagged_cell(app, clicked_y - y_start, clicked_x - x_start);
     }
     
+    return 0;
+}
+
+int draw_grid(APPstate *app) {
+    WINDOW *win = app->window;
+    if (win == NULL) {
+        write_log(LOG_ERROR, "Window is NULL in draw_game.");
+        return 1;
+    }
+    getmaxyx(win, max_y, max_x);
+
+    if (app->game_grid.cells == NULL) {
+        if (initialize_grid(app) != 0) {
+            write_log(LOG_ERROR, "Failed to initialize game grid.");
+            return 1;
+        }
+        write_log(LOG_INFO, "Grid %d x %d, mines=%d", app->grid_rows, app->grid_columns, app->game_grid.total_mines);
+    }
+
+    if (app->game_grid.cells == NULL) {
+        write_log(LOG_ERROR, "Game grid cells are NULL.");
+    }
+
+    int x_start = (max_x - app->grid_columns) / 2;
+    int y_start = (max_y - app->grid_rows) / 2;
+
+    if (max_y < app->grid_rows || max_x < app->grid_columns) {
+        //this will change later to a interdiction of starting the game with too small window and lock the window size
+        write_log(LOG_ERROR, "Window too small (%d x %d) for grid %d x %d", max_y, max_x, app->grid_rows, app->grid_columns);
+        return 1;
+    }
+
+    for (int r = 0; r < app->grid_rows; r++) {
+        for (int c = 0; c < app->grid_columns; c++) {
+            if (app->game_grid.cells[r][c].is_revealed == TRUE) {
+                char adj[4];
+                snprintf(adj, sizeof(adj), "%d", app->game_grid.cells[r][c].adjacent_mines);
+                mvwprintw(win, y_start + r, x_start + c, "%s", adj);
+            } else if (app->game_grid.cells[r][c].is_flagged == TRUE) {
+                wattron(win, A_REVERSE | A_BOLD);
+                mvwprintw(win, y_start + r, x_start + c, "F");
+                wattroff(win, A_REVERSE | A_BOLD);
+            } else {
+                mvwprintw(win, y_start + r, x_start + c, "#");
+            }
+        }
+    }
+
+    return 0;
+}
+
+int draw_end(APPstate *app) {
+    WINDOW *win = app->window;
+    if (win == NULL) {
+        write_log(LOG_ERROR, "Window is NULL in draw_end.");
+        return 1;
+    }
+    int clicked_y = -1;
+    int clicked_x = -1;
+    int mouse_clicked = 0;
+    getmaxyx(win, max_y, max_x);
+
+    werase(win);
+
+    if (app->game_grid.revealed_cells != app->grid_rows * app->grid_columns - app->game_grid.total_mines) { 
+        middle_x(win, 1, "=== You hit a mine! ===");
+    } else {
+        middle_x(win, 1, "=== Congratulations! You win! ===");
+    }
+
+    time_t now = time(NULL);
+    int elapsed = (int)difftime(app->end_time, app->start_time);
+    char time_str[30];
+    snprintf(time_str, sizeof(time_str), "Total Time: %02d:%02d", elapsed / 60, elapsed % 60);
+    middle_x(win, 2, time_str);
+
+    draw_grid(app);
+
+    if (app->cursor_y == max_y-2){
+        wattron(win, A_REVERSE);
+    }
+    middle_x(win, max_y-2, "Click to return to menu.");
+    if (app->cursor_y == max_y-2){
+        wattroff(win, A_REVERSE);
+    }
+
+    if (app->cursor_y == max_y-1){
+        wattron(win, A_REVERSE);
+    }
+    middle_x(win, max_y-1, "Click to exit.");
+    if (app->cursor_y == max_y-1){
+        wattroff(win, A_REVERSE);
+    }
+
+    mouse_clicked = NONE;
+
+    if (app->mouse_event.bstate & BUTTON1_PRESSED) {
+        mouse_clicked = LEFT_BUTTON;
+    } else if (app->mouse_event.bstate & BUTTON3_PRESSED) {
+        mouse_clicked = RIGHT_BUTTON;
+    } else {
+        return 0;
+    }
+
+    clicked_y = app->mouse_event.y;
+    clicked_x = app->mouse_event.x;
+    app->mouse_event.bstate = 0;
+
+    if (mouse_clicked == LEFT_BUTTON) {
+        if (clicked_y == max_y-2){
+            app->current_window = MENU;
+            write_log(LOG_INFO, "Returning to menu from end screen.");
+        } else if (clicked_y == max_y-1) {
+            write_log(LOG_INFO, "Quit selected from end screen.");
+            app->running = 0;
+        }
+    }
+
     return 0;
 }
 

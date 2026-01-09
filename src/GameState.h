@@ -30,6 +30,7 @@ struct APPstate{
     int mine_pourcentage;        /**< Percentage of mines in the game grid. */
     Grid game_grid;              /**< The game grid structure. */
     time_t start_time;          /**< Game start time. */
+    time_t end_time;            /**< Game end time. */
 };
 
 #endif // GAMESTATE_H
