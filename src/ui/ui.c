@@ -332,9 +332,15 @@ int draw_grid(APPstate *app) {
     for (int r = 0; r < app->grid_rows; r++) {
         for (int c = 0; c < app->grid_columns; c++) {
             if (app->game_grid.cells[r][c].is_revealed == TRUE) {
-                char adj[4];
-                snprintf(adj, sizeof(adj), "%d", app->game_grid.cells[r][c].adjacent_mines);
-                mvwprintw(win, y_start + r, x_start + c, "%s", adj);
+                if (app->game_grid.cells[r][c].is_mine == TRUE) {
+                    wattron(win, A_BOLD | A_REVERSE);
+                    mvwprintw(win, y_start + r, x_start + c, "*");
+                    wattroff(win, A_BOLD | A_REVERSE);
+                } else {
+                    char adj[4];
+                    snprintf(adj, sizeof(adj), "%d", app->game_grid.cells[r][c].adjacent_mines);
+                    mvwprintw(win, y_start + r, x_start + c, "%s", adj);
+                }
             } else if (app->game_grid.cells[r][c].is_flagged == TRUE) {
                 wattron(win, A_REVERSE | A_BOLD);
                 mvwprintw(win, y_start + r, x_start + c, "F");
@@ -355,6 +361,12 @@ int draw_end(APPstate *app) {
         return 1;
     }
 
+    for(int i=0;i<app->game_grid.rows;i++){
+        for(int j=0;j<app->game_grid.columns;j++){
+            app->game_grid.cells[i][j].is_revealed=TRUE;
+        }
+    }
+
     getmaxyx(win, max_y, max_x);
 
     werase(win);
@@ -371,6 +383,14 @@ int draw_end(APPstate *app) {
     middle_x(win, 2, time_str);
 
     draw_grid(app);
+    
+    if (app->cursor_y == max_y-3){
+        wattron(win, A_REVERSE);
+    }
+    middle_x(win, max_y-3, "Play Again (same settings)");
+    if (app->cursor_y == max_y-3){
+        wattroff(win, A_REVERSE);
+    }
 
     if (app->cursor_y == max_y-2){
         wattron(win, A_REVERSE);
@@ -388,8 +408,19 @@ int draw_end(APPstate *app) {
         wattroff(win, A_REVERSE);
     }
 
+    
     MouseEvent mouse = app->mouse;
     switch (max_y-mouse.y) {
+        case 3:
+            // Reset game state for a new game with same settings
+            cleanup_grid(app);
+            app->game_grid.mine_placed = FALSE;
+            app->game_grid.cells = NULL;
+            app->game_grid.revealed_cells = 0;
+            app->start_time = time(NULL);
+            app->current_window = GAME;
+            write_log(LOG_INFO, "Starting new game with same settings from end screen.");
+            break;
         case 2:
             app->current_window = MENU;
             write_log(LOG_INFO, "Returning to menu from end screen.");
