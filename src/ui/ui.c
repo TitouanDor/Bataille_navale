@@ -275,6 +275,13 @@ int draw_game(APPstate *app) {
     clicked_x = app->mouse_event.x;
     app->mouse_event.bstate = 0;
 
+    if (app->game_grid.mine_placed == FALSE){
+        place_mines(app, clicked_y - y_start, clicked_x - x_start);
+        app->game_grid.mine_placed = TRUE;
+        write_log(LOG_INFO, "Mines placed on the grid, first click at (%d, %d).", clicked_y - y_start, clicked_x - x_start);
+        return 0;
+    }
+
 
     if (mouse_clicked == LEFT_BUTTON) {
         write_log(LOG_INFO, "Revealed cells: %d, Flagged cells: %d, Total cells: %d",

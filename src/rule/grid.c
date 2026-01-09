@@ -29,7 +29,8 @@ int initialize_grid(APPstate *app) {
         write_log(LOG_ERROR, "Failed to allocate memory for grid rows.");
         return 1;
     }
-
+    app->game_grid.revealed_cells = 0;
+    app->game_grid.mine_placed = FALSE;
 
     for (int r = 0; r < app->grid_rows; r++) {
         app->game_grid.cells[r] = malloc(app->grid_columns * sizeof(Cell));
@@ -56,13 +57,15 @@ int initialize_grid(APPstate *app) {
             }
         }
     }
+    return 0;
+}
 
-    // Place mines randomly
+int place_mines(APPstate *app, int first_row, int first_col) {
     int placed_mines = 0;
     while (placed_mines < app->game_grid.total_mines) {
         int r = rand() % app->grid_rows;
         int c = rand() % app->grid_columns;
-        if (!app->game_grid.cells[r][c].is_mine) {
+        if (!app->game_grid.cells[r][c].is_mine && !(r == first_row && c == first_col)) {
             app->game_grid.cells[r][c].is_mine = TRUE;
             placed_mines++;
         }
@@ -98,7 +101,8 @@ int initialize_grid(APPstate *app) {
         }
     }
 
-    return 0;
+    reveal_cell(app, first_row, first_col);
+    return TRUE;
 }
 
 int count_adjacent_mines(APPstate *app, int r, int c) {
@@ -131,8 +135,8 @@ int reveal_cell(APPstate *app, int row, int col) {
     }
 
     cell->is_revealed = TRUE;
-    write_log(LOG_INFO, "Revealed cell (%d, %d) and has %d adjacent mines.", row, col, count_adjacent_mines(app, row, col));
     app->game_grid.revealed_cells++;
+    write_log(LOG_INFO, "Revealed cell (%d, %d) and has %d adjacent mines.", row, col, count_adjacent_mines(app, row, col));
 
     if (cell->adjacent_mines == 0) {
         // Reveal adjacent cells recursively

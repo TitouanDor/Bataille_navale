@@ -26,6 +26,7 @@ typedef struct {
     int rows;          /**< Number of rows in the grid. */
     int total_mines;   /**< Total number of mines in the grid. */
     int revealed_cells;/**< Count of revealed cells. */
+    int mine_placed;    /**< Flag indicating if mines have been placed. */
 } Grid;
 
 /**
@@ -38,6 +39,16 @@ typedef struct {
  * \return 0 on success, non-zero on error.
  */
 int initialize_grid(APPstate *app);
+
+/**
+ * Places mines on the grid, avoiding the first clicked cell.
+ *
+ * \param app Pointer to the current application state.
+ * \param first_row Row index of the first clicked cell.
+ * \param first_col Column index of the first clicked cell.
+ * \return TRUE on success, FALSE on failure.
+ */
+int place_mines(APPstate *app, int first_row, int first_col);
 
 /**
  * Reveals a cell at the specified row and column.
